@@ -150,3 +150,64 @@ word_ratios %>%
 ```
 
 <img src="tidytext_files/figure-gfm/unnamed-chunk-7-1.png" width="90%" />
+
+## Sentiment analysis
+
+Load lexicon
+
+``` r
+bing_sentiments = get_sentiments("bing")
+```
+
+Get sentiments for dynamite reviews.
+
+``` r
+dynamite_sentiments =
+  inner_join(dynamite_words, bing_sentiments) %>% 
+  count(review_num, sentiment) %>% 
+  pivot_wider(
+    names_from = sentiment,
+    values_from = n, 
+    values_fill = 0
+  ) %>% 
+  mutate(review_sentiment = positive - negative) %>% 
+  select(review_num, review_sentiment)
+```
+
+    ## Joining, by = "word"
+
+Combine with full data
+
+``` r
+dynamite_sentiments =
+  left_join(dynamite_sentiments, dynamite_reviews) %>% 
+  select(-urls)
+```
+
+    ## Joining, by = "review_num"
+
+``` r
+dynamite_sentiments %>% 
+  mutate(
+    review_num = factor(review_num),
+    review_num = fct_reorder(review_num, review_sentiment)
+  ) %>% 
+  ggplot(aes(x = review_num, y = review_sentiment, fill = stars)) + 
+  geom_bar(stat = "identity") +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()) 
+```
+
+<img src="tidytext_files/figure-gfm/unnamed-chunk-11-1.png" width="90%" />
+
+can we look at positive and negative reviews
+
+``` r
+dynamite_sentiments %>% 
+  filter(review_sentiment == max(review_sentiment)) %>% 
+  pull(text)
+```
+
+    ## [1] "love love love love love. We watch this twice a week and even had a Napoleon Dynamite party complete with corn dogs and tater tots. FUN!!"
