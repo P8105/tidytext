@@ -45,3 +45,37 @@ dynamite_reviews =
   mutate(review_num = row_number()) %>% 
   relocate(page, review_num)
 ```
+
+## Do some tidy text stuff
+
+``` r
+dynamite_words =
+  dynamite_reviews %>% 
+  unnest_tokens(word, text) %>% 
+  select(-urls)
+```
+
+remove boring words
+
+``` r
+dynamite_words =
+  anti_join(dynamite_words, stop_words)
+```
+
+    ## Joining, by = "word"
+
+Usual tidyverse stuff …
+
+``` r
+dynamite_words %>% 
+  count(word, sort = TRUE) %>% 
+  top_n(10) %>% 
+  mutate(word = fct_reorder(word, n)) %>% 
+  ggplot(aes(x = word, y = n)) +
+  geom_bar(stat = "identity") + 
+  coord_flip()
+```
+
+    ## Selecting by n
+
+<img src="tidytext_files/figure-gfm/unnamed-chunk-4-1.png" width="90%" />

@@ -5,6 +5,7 @@ output: github_document
 
 ```{r setup, include = FALSE}
 library(tidyverse)
+library(tidytext)
 library(rvest)
 
 knitr::opts_chunk$set(
@@ -70,5 +71,35 @@ dynamite_reviews =
   unnest(reviews) %>%
   mutate(review_num = row_number()) %>% 
   relocate(page, review_num)
+```
+
+
+## Do some tidy text stuff
+
+```{r}
+dynamite_words =
+  dynamite_reviews %>% 
+  unnest_tokens(word, text) %>% 
+  select(-urls)
+```
+
+
+remove boring words
+
+```{r}
+dynamite_words =
+  anti_join(dynamite_words, stop_words)
+```
+
+Usual tidyverse stuff ...
+
+```{r}
+dynamite_words %>% 
+  count(word, sort = TRUE) %>% 
+  top_n(10) %>% 
+  mutate(word = fct_reorder(word, n)) %>% 
+  ggplot(aes(x = word, y = n)) +
+  geom_bar(stat = "identity") + 
+  coord_flip()
 ```
 
